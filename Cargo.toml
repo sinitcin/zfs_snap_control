@@ -1,0 +1,6 @@
+[package]
+name = "zfs_snap_control"
+version = "0.1.0"
+authors = ["Антон Синицын <antony@email.su>"]
+
+[dependencies]
