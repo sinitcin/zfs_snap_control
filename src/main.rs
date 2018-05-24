@@ -1,6 +1,9 @@
 extern crate chrono;
+extern crate clap;
 
 fn main() {
+
+
     //zfs::snapshots::new("rpool/ROOT/ubuntu");
     let list = zfs::snapshots::list("rpool/ROOT/ubuntu");
     println!("{:?}", list);
@@ -27,9 +30,10 @@ pub mod zfs {
                 .args(&["snapshot", &format!("{}@{}", pool_name, snap_name)])
                 .output()
                 .expect("Не смог создать снапшот");
-            println!("{:?}", buffer);
+            println!("{:?}", String::from_utf8(buffer.stdout));
+            println!("{:?}", String::from_utf8(buffer.stderr));
         }
-
+        
         pub fn list(pool_name: &str) -> Vec<chrono::DateTime<chrono::FixedOffset>> {
             /*
             let output = Command::new("zfs")
