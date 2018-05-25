@@ -1,8 +1,45 @@
 extern crate chrono;
 extern crate clap;
+use clap::{App, Arg};
 
 fn main() {
+    let matches = App::new("     
+-------------------------------------------------------------------------------                                                                
+   mmm   m   m  m   m  m   m  m   m  m    m m   m         mmmm   m   m   mmm  
+  #\"  \"  #  ##  #   #  #  ##  #   #  #    # #   #         #\" \"#  \"m m\"  #\"  \" 
+  #      # # #  #\"\"\"#  # # #  #   #  #\"\"m # #\"\"\"#         #   #   #m#   #     
+  \"#mm\"  #\"  #  #   #  #\"  #  #mmm#m #mm\" # #   #    #    ##m#\"   \"#    \"#mm\" 
+                                   #                      #       m\"          
+                                                          \"      \"\"           
+------------------------------ ZFS Snap Control -------------------------------
+    ")
+        .about("Create ZFS snapshots on a schedule and automatically delete old ones!")
+        .version("Version: 1.0")
+        .author("     Anton Sinicin (c) 2018")
+        .arg(
+            Arg::with_name("pool_name")
+                .short("p")
+                .long("pool_name")
+                .value_name("FILE")
+                .help("Sets a custom pool for are control of snapshots.")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("days_duration")
+                .short("d")
+                .long("days duration")
+                .value_name("COUNT")
+                .help("Set the length of days during which the state snapshots will be taken.")
+                .takes_value(true),
+        )
+        .get_matches();
 
+    let pool_name;
+    match matches.value_of("pool_name") {
+        Some(foo) => pool_name = foo,
+        None => panic!("Without arg \"pool_name\", it's impossible to continue working"),
+    }
+    println!("{:?}", pool_name);
 
     //zfs::snapshots::new("rpool/ROOT/ubuntu");
     let list = zfs::snapshots::list("rpool/ROOT/ubuntu");
@@ -33,7 +70,7 @@ pub mod zfs {
             println!("{:?}", String::from_utf8(buffer.stdout));
             println!("{:?}", String::from_utf8(buffer.stderr));
         }
-        
+
         pub fn list(pool_name: &str) -> Vec<chrono::DateTime<chrono::FixedOffset>> {
             /*
             let output = Command::new("zfs")
@@ -59,7 +96,10 @@ pub mod zfs {
                 })
                 .filter(|s| s != &"NAME")
                 .filter_map(|line| line.rsplit('@').next())
-                .map(|s| chrono::DateTime::parse_from_str(&format!("{} +00:00", s), "%e_%m_%Y__%H_%M %z").unwrap())
+                .map(|s| {
+                    chrono::DateTime::parse_from_str(&format!("{} +00:00", s), "%e_%m_%Y__%H_%M %z")
+                        .unwrap()
+                })
                 .collect()
         }
 
