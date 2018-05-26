@@ -155,15 +155,15 @@ pub mod zfs {
                 dt.minute()
             );
             let err_message = "Не смог создать снапшот";
-            let cmd =
-                Command::new("zfs").args(&["snapshot", &format!("{}@{}", pool_name, snap_name)]);
+            let mut cmd = Command::new("zfs");
+            cmd.args(&["snapshot", &format!("{}@{}", pool_name, snap_name)]);
 
             let status = cmd.status().expect(err_message);
             assert!(status.success());
 
             let output = cmd.output().expect(err_message);
-            println!("{}", String::from_utf8(output.stdout));
-            println!("{}", String::from_utf8(output.stderr));
+            println!("{}", str::from_utf8(&output.stdout).unwrap());
+            println!("{}", str::from_utf8(&output.stderr).unwrap());
         }
 
         /// Создание нового снапшота в ZFS
