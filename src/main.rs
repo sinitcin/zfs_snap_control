@@ -83,9 +83,7 @@ mod test {
 
     #[test]
     fn make_snaps() {
-        for _i in 1..3 {
-            zfs::snapshots::new("rpool/ROOT/ubuntu");
-        }
+        zfs::snapshots::new("rpool/ROOT/ubuntu");
     }
 
     #[cfg(target_os = "linux")]
