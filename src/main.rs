@@ -154,12 +154,16 @@ pub mod zfs {
                 dt.hour(),
                 dt.minute()
             );
-            let buffer = Command::new("zfs")
-                .args(&["snapshot", &format!("{}@{}", pool_name, snap_name)])
-                .output()
-                .expect("Не смог создать снапшот");
-            println!("{:?}", String::from_utf8(buffer.stdout));
-            println!("{:?}", String::from_utf8(buffer.stderr));
+            let err_message = "Не смог создать снапшот";
+            let cmd =
+                Command::new("zfs").args(&["snapshot", &format!("{}@{}", pool_name, snap_name)]);
+
+            let status = cmd.status().expect(err_message);
+            assert!(status.success());
+
+            let output = cmd.output().expect(err_message);
+            println!("{}", String::from_utf8_lossy(buffer.stdout));
+            println!("{}", String::from_utf8_lossy(buffer.stderr));
         }
 
         /// Создание нового снапшота в ZFS
@@ -184,10 +188,14 @@ pub mod zfs {
         /// ...
         /// ```
         pub fn list(pool_name: &str) -> Vec<chrono::DateTime<chrono::FixedOffset>> {
-            let output = Command::new("zfs")
-                .args(&["list", "-t", "snapshots"])
-                .output()
-                .expect("Не могу получить список снапшотов");
+            let err_message = "Не могу получить список снапшотов";
+
+            let mut cmd = Command::new("zfs");
+            cmd.args(&["list", "-t", "snapshots"]);
+            let status = cmd.status().expect(err_message);
+            assert!(status.success());
+
+            let output = cmd.output().expect(err_message);
 
             // Получаем список снапшотов сделанных в pool_name именно нами
             String::from_utf8_lossy(&output.stdout)
@@ -215,10 +223,12 @@ pub mod zfs {
         /// ...
         /// ```
         pub fn remove(full_snap_name: &str) {
-            Command::new("zfs")
-                .args(&["destroy", full_snap_name])
-                .output()
-                .expect("Не могу уничтожить снапшот");
+            let err_message = "Не могу уничтожить снапшот";
+            let mut cmd = Command::new("zfs");
+            cmd.args(&["destroy", &full_snap_name.to_owned()]);
+            let status = cmd.status().expect(err_message);
+            assert!(status.success());
+            cmd.output().expect(err_message);
         }
     }
 }
