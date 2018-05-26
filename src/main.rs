@@ -91,6 +91,7 @@ mod test {
     fn remove_snaps() {
         let pool_name = "rpool/ROOT/ubuntu";
         let list = zfs::snapshots::list(pool_name);
+        println!("{}", list);
         for item in list {
             zfs::snapshots::remove(&format!(
                 "{}@{}_{}_{}__{}_{}",
