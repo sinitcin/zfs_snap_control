@@ -201,15 +201,13 @@ pub mod zfs {
                 .lines()
                 .filter_map(|line| line.split_whitespace().next())
                 .filter(|line| line.find(pool_name) != None)
-                .filter(|line| {
-                    line.contains(|c: char| (c == '_' || c.is_ascii_digit()) && !c.is_ascii_digit())
-                })
-                .filter(|s| s != &"NAME")
                 .filter_map(|line| line.rsplit('@').next())
-                .map(|s| {
-                    println!("{}", s);
-                    chrono::DateTime::parse_from_str(&format!("{} +00:00", s), "%d_%m_%Y__%H_%M %z")
-                        .unwrap()
+                .filter_map(|s| {
+                    match chrono::DateTime::parse_from_str(&format!("{} +00:00", s), "%d_%m_%Y__%H_%M %z")
+                    {
+                        Ok(dt) => Some(dt),
+                        Err(_) => None,
+                    }
                 })
                 .collect()
         }
