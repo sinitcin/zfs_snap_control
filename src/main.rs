@@ -191,7 +191,7 @@ pub mod zfs {
             let err_message = "Не могу получить список снапшотов";
 
             let mut cmd = Command::new("zfs");
-            cmd.args(&["list", "-t", "snapshots"]);
+            cmd.args(&["list", "-t", "snapshot"]);
             let status = cmd.status().expect(err_message);
             assert!(status.success());
 
