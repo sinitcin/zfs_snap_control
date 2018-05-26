@@ -1,7 +1,7 @@
 # zfs_snap_control
 Create ZFS snapshots on a schedule and automatically delete old ones
 
-# Examples
+## Examples
 
 For the application to work properly, configure its launch at a convenient time for you through the task scheduler. I'm using cron:
 ```
@@ -17,7 +17,7 @@ We will enter the convenient time for creating a snapshot of the state and the c
 
 It's done, now you can forget about creating snapshots!!!
 
-# For restore from snapshot
+## For restore from snapshot
 
 1. You must select a snapshot from command output:
 ```
