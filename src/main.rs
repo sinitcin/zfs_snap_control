@@ -162,8 +162,8 @@ pub mod zfs {
             assert!(status.success());
 
             let output = cmd.output().expect(err_message);
-            println!("{}", String::from_utf8_lossy(output.stdout));
-            println!("{}", String::from_utf8_lossy(output.stderr));
+            println!("{}", String::from_utf8(output.stdout));
+            println!("{}", String::from_utf8(output.stderr));
         }
 
         /// Создание нового снапшота в ZFS
