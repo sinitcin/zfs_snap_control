@@ -130,6 +130,8 @@ pub mod zfs {
         extern crate chrono;
         use std::process::Command;
         use std::str;
+        #[cfg(target_os = "linux")]
+        use chrono::prelude::*;
 
         /// Создание нового снапшота в ZFS
         ///
