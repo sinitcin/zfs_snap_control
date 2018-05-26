@@ -53,10 +53,11 @@ fn main() {
         .unwrap_or(14);
 
     // Удаляем старые снапшоты
-    let dt = Local::now();
+    let dt = Utc::now();
     let list = zfs::snapshots::list(pool_name);
     for item in list {
-        println!("{:?}", item - dt);
+        let fixed_dt = dt.with_timezone(&FixedOffset::east(0));
+        println!("{:?}", (fixed_dt - item).days());
         let mut need_remove = dt.year() != item.year();
         if need_remove {
             zfs::snapshots::remove("rpool/ROOT/ubuntu@version2");
@@ -72,6 +73,7 @@ pub mod zfs {
         use chrono::prelude::*;
         use std::process::Command; // https://github.com/chronotope/chrono
 
+        #[cfg(target_os = "linux")]
         pub fn new(pool_name: &str) {
             let dt = Utc::now();
             let snap_name = format!(
@@ -88,6 +90,11 @@ pub mod zfs {
                 .expect("Не смог создать снапшот");
             println!("{:?}", String::from_utf8(buffer.stdout));
             println!("{:?}", String::from_utf8(buffer.stderr));
+        }
+
+        #[cfg(not(target_os = "linux"))]
+        pub fn new(pool_name: &str) {
+            println!("I can't make are snapshot \"{}\" in this OS...", pool_name);
         }
 
         pub fn list(pool_name: &str) -> Vec<chrono::DateTime<chrono::FixedOffset>> {
