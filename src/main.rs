@@ -5,17 +5,18 @@ use clap::{App, Arg};
 use std::process;
 
 fn main() {
-    let matches = App::new("     
--------------------------------------------------------------------------------                                                                
+    let matches = App::new(
+        "     
+-------------------------------------------------------------------------------
    mmm   m   m  m   m  m   m  m   m  m    m m   m         mmmm   m   m   mmm  
   #\"  \"  #  ##  #   #  #  ##  #   #  #    # #   #         #\" \"#  \"m m\"  #\"  \" 
   #      # # #  #\"\"\"#  # # #  #   #  #\"\"m # #\"\"\"#         #   #   #m#   #     
   \"#mm\"  #\"  #  #   #  #\"  #  #mmm#m #mm\" # #   #    #    ##m#\"   \"#    \"#mm\" 
                                    #                      #       m\"          
-                                                          \"      \"\"           
+                                                          \"      \"\"         
 ------------------------------ ZFS Snap Control -------------------------------
-    ")
-        .about("Create ZFS snapshots on a schedule and automatically delete old ones!")
+    ",
+    ).about("Create ZFS snapshots on a schedule and automatically delete old ones!")
         .version("Version: 1.0")
         .author("     Anton Sinicin (c) 2018")
         .arg(
@@ -57,22 +58,54 @@ fn main() {
     let list = zfs::snapshots::list(pool_name);
     for item in list {
         let fixed_dt = dt.with_timezone(&FixedOffset::east(0));
-        println!("{:?}", (fixed_dt - item).days());
-        let mut need_remove = dt.year() != item.year();
-        if need_remove {
-            zfs::snapshots::remove("rpool/ROOT/ubuntu@version2");
+        if (fixed_dt - item).num_days() > days_duration {
+            zfs::snapshots::remove(&format!(
+                "{}@{}_{}_{}__{}_{}",
+                pool_name,
+                item.day(),
+                item.month(),
+                item.year(),
+                item.hour(),
+                item.minute()
+            ));
         }
     }
     // Создаём новый
     zfs::snapshots::new(pool_name);
 }
 
+/// Модуль zfs в данной версии позволяет создавать, удалять и просматривать список снапшотов.
+/// 
+/// # Examples
+/// Пример для создания снапшота
+/// ```
+/// zfs::snapshots::new("rpool/ROOT/ubuntu@version1");
+/// ```
+/// 
+/// Пример для просмотра списка снапшотов
+/// ```
+/// let list = zfs::snapshots::list(pool_name);
+/// for item in list {
+///     ...
+/// }
+/// ```
+/// Пример для удаления снапшота
+/// ```
+/// zfs::snapshots::new("rpool/ROOT/ubuntu@23_5_2018__17_50");
+/// ```
 pub mod zfs {
     pub mod snapshots {
         extern crate chrono;
-        use chrono::prelude::*;
-        use std::process::Command; // https://github.com/chronotope/chrono
+        use std::process::Command;
 
+        /// Создание нового снапшота в ZFS
+        /// 
+        /// Указывается имя пула, стандартное для ZFS, например:
+        /// ```
+        /// rpool/ROOT/ubuntu
+        /// rpool/ROOT/ubuntu
+        /// ...
+        /// ```
         #[cfg(target_os = "linux")]
         pub fn new(pool_name: &str) {
             let dt = Utc::now();
@@ -92,11 +125,27 @@ pub mod zfs {
             println!("{:?}", String::from_utf8(buffer.stderr));
         }
 
+        /// Создание нового снапшота в ZFS
+        /// 
+        /// Указывается имя пула, стандартное для ZFS, например:
+        /// ```
+        /// rpool/ROOT/ubuntu
+        /// rpool/ROOT/ubuntu
+        /// ...
+        /// ```
         #[cfg(not(target_os = "linux"))]
         pub fn new(pool_name: &str) {
             println!("I can't make are snapshot \"{}\" in this OS...", pool_name);
         }
 
+        /// Список дат когда были сделаны снапшоты
+        /// 
+        /// Указывается имя пула, стандартное для ZFS, например:
+        /// ```
+        /// rpool/ROOT/ubuntu
+        /// rpool/ROOT/ubuntu
+        /// ...
+        /// ```
         pub fn list(pool_name: &str) -> Vec<chrono::DateTime<chrono::FixedOffset>> {
             /*
             let output = Command::new("zfs")
@@ -129,6 +178,14 @@ pub mod zfs {
                 .collect()
         }
 
+        /// Удаление снашота по полному имени
+        /// 
+        /// Имя снапшота должно быть указано полностью:
+        /// ```
+        /// rpool/ROOT/ubuntu@version1
+        /// rpool/ROOT/ubuntu@23_5_2018__17_50
+        /// ...
+        /// ```
         pub fn remove(full_snap_name: &str) {
             Command::new("zfs")
                 .args(&["destroy", full_snap_name])
