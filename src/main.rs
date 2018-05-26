@@ -207,7 +207,7 @@ pub mod zfs {
                 .filter(|s| s != &"NAME")
                 .filter_map(|line| line.rsplit('@').next())
                 .map(|s| {
-                    chrono::DateTime::parse_from_str(&format!("{} +00:00", s), "%e_%m_%Y__%H_%M %z")
+                    chrono::DateTime::parse_from_str(&format!("{} +00:00", s), "%d_%m_%Y__%H_%M %z")
                         .unwrap()
                 })
                 .collect()
