@@ -1,6 +1,8 @@
 extern crate chrono;
 extern crate clap;
+use chrono::prelude::*;
 use clap::{App, Arg};
+use std::process;
 
 fn main() {
     let matches = App::new("     
@@ -37,14 +39,31 @@ fn main() {
     let pool_name;
     match matches.value_of("pool_name") {
         Some(foo) => pool_name = foo,
-        None => panic!("Without arg \"pool_name\", it's impossible to continue working"),
+        None => {
+            println!(
+                "[ERROR] => Without arg \"pool_name\", it's impossible to continue working..."
+            );
+            process::exit(0);
+        }
     }
-    println!("{:?}", pool_name);
+    let days_duration = matches
+        .value_of("days_duration")
+        .unwrap_or("14")
+        .parse()
+        .unwrap_or(14);
 
-    //zfs::snapshots::new("rpool/ROOT/ubuntu");
-    let list = zfs::snapshots::list("rpool/ROOT/ubuntu");
-    println!("{:?}", list);
-    //zfs::snapshots::remove("rpool/ROOT/ubuntu@version2");
+    // Удаляем старые снапшоты
+    let dt = Local::now();
+    let list = zfs::snapshots::list(pool_name);
+    for item in list {
+        println!("{:?}", item - dt);
+        let mut need_remove = dt.year() != item.year();
+        if need_remove {
+            zfs::snapshots::remove("rpool/ROOT/ubuntu@version2");
+        }
+    }
+    // Создаём новый
+    zfs::snapshots::new(pool_name);
 }
 
 pub mod zfs {
