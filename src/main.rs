@@ -78,6 +78,8 @@ fn main() {
 mod test {
     extern crate chrono;
     use super::zfs;
+    #[cfg(target_os = "linux")]
+    use chrono::prelude::*;
 
     #[test]
     fn make_snaps() {
@@ -128,10 +130,10 @@ pub mod zfs {
     pub mod snapshots {
 
         extern crate chrono;
-        use std::process::Command;
-        use std::str;
         #[cfg(target_os = "linux")]
         use chrono::prelude::*;
+        use std::process::Command;
+        use std::str;
 
         /// Создание нового снапшота в ZFS
         ///
