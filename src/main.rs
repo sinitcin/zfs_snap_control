@@ -74,14 +74,45 @@ fn main() {
     zfs::snapshots::new(pool_name);
 }
 
+#[cfg(test)]
+mod test {
+    extern crate chrono;
+    use super::zfs;
+
+    #[test]
+    fn make_snaps() {
+        for _i in 1..3 {
+            zfs::snapshots::new("rpool/ROOT/ubuntu");
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn remove_snaps() {
+        let pool_name = "rpool/ROOT/ubuntu";
+        let list = zfs::snapshots::list(pool_name);
+        for item in list {
+            zfs::snapshots::remove(&format!(
+                "{}@{}_{}_{}__{}_{}",
+                pool_name,
+                item.day(),
+                item.month(),
+                item.year(),
+                item.hour(),
+                item.minute()
+            ));
+        }
+    }
+}
+
 /// Модуль zfs в данной версии позволяет создавать, удалять и просматривать список снапшотов.
-/// 
+///
 /// # Examples
 /// Пример для создания снапшота
 /// ```
 /// zfs::snapshots::new("rpool/ROOT/ubuntu@version1");
 /// ```
-/// 
+///
 /// Пример для просмотра списка снапшотов
 /// ```
 /// let list = zfs::snapshots::list(pool_name);
@@ -95,11 +126,13 @@ fn main() {
 /// ```
 pub mod zfs {
     pub mod snapshots {
+
         extern crate chrono;
         use std::process::Command;
+        use std::str;
 
         /// Создание нового снапшота в ZFS
-        /// 
+        ///
         /// Указывается имя пула, стандартное для ZFS, например:
         /// ```
         /// rpool/ROOT/ubuntu
@@ -126,7 +159,7 @@ pub mod zfs {
         }
 
         /// Создание нового снапшота в ZFS
-        /// 
+        ///
         /// Указывается имя пула, стандартное для ZFS, например:
         /// ```
         /// rpool/ROOT/ubuntu
@@ -139,7 +172,7 @@ pub mod zfs {
         }
 
         /// Список дат когда были сделаны снапшоты
-        /// 
+        ///
         /// Указывается имя пула, стандартное для ZFS, например:
         /// ```
         /// rpool/ROOT/ubuntu
@@ -147,22 +180,13 @@ pub mod zfs {
         /// ...
         /// ```
         pub fn list(pool_name: &str) -> Vec<chrono::DateTime<chrono::FixedOffset>> {
-            /*
             let output = Command::new("zfs")
                 .args(&["list", "-t", "snapshots"])
                 .output()
                 .expect("Не могу получить список снапшотов");
-            */
-
-            let output = "NAME                                 USED  AVAIL  REFER  MOUNTPOINT
-                          rpool@gitlab                            0      -   128K  -
-                          rpool/ROOT/ubuntu@version1          6,20M      -   643M  -
-                          rpool/ROOT/ubuntu@gitlab1            235M      -   898M  -
-                          rpool/ROOT/ubuntu@23_5_2018__17_50  95,9K      -  5,84G  -"
-                .to_owned();
 
             // Получаем список снапшотов сделанных в pool_name именно нами
-            output
+            String::from_utf8_lossy(&output.stdout)
                 .lines()
                 .filter_map(|line| line.split_whitespace().next())
                 .filter(|line| line.find(pool_name) != None)
@@ -179,7 +203,7 @@ pub mod zfs {
         }
 
         /// Удаление снашота по полному имени
-        /// 
+        ///
         /// Имя снапшота должно быть указано полностью:
         /// ```
         /// rpool/ROOT/ubuntu@version1
