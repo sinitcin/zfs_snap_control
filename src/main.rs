@@ -58,7 +58,7 @@ fn main() {
     let list = zfs::snapshots::list(pool_name);
     for item in list {
         let fixed_dt = dt.with_timezone(&FixedOffset::east(0));
-        if (fixed_dt - item).num_days() > days_duration {
+        if (fixed_dt - item).num_days() >= days_duration {
             zfs::snapshots::remove(&format!(
                 "{}@{}_{}_{}__{}_{}",
                 pool_name,
